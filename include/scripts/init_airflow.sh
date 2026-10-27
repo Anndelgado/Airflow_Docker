@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Inicialización automática de Airflow (servicio airflow-init del compose).
-# Se puede correr muchas veces: cada paso revisa o reemplaza lo que ya existe.
 set -euo pipefail
 
 echo "1/4 Migrando la base de metadatos de Airflow..."

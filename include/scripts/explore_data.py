@@ -1,10 +1,6 @@
 """
 Exploración de las fuentes crudas (NO es parte del DAG).
 
-Uso:
-    docker compose exec airflow-scheduler python /opt/airflow/include/scripts/explore_data.py
-
-Los resultados están resumidos en docs/decisiones_tecnicas.md (sección 2).
 """
 
 import csv

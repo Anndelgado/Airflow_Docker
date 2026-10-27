@@ -46,9 +46,7 @@ class RejectedRow(Exception):
         self.value = value
 
 
-# ---------------------------------------------------------------------------
 # Funciones de limpieza: una por campo
-# ---------------------------------------------------------------------------
 
 def clean_text(value):
     """Quita espacios sobrantes. Texto vacío -> None."""
@@ -111,11 +109,6 @@ def transaction_type_for(quantity):
 
 
 def business_key(record):
-    """
-    Identifica una línea de factura sin importar de qué fuente venga:
-    factura + producto + fecha + cantidad + precio.
-    Se calcula con los valores YA limpios, así '18' y '18.0' dan la misma clave.
-    """
     parts = [
         record["invoice_no"],
         record["stock_code"],
@@ -127,7 +120,7 @@ def business_key(record):
 
 
 def clean_row(row, source_name, source_tz):
-    """Convierte una fila cruda en una transacción limpia o lanza RejectedRow."""
+    """Convierte una fila cruda en una transacción limpia."""
     invoice_no = clean_text(row["invoice_no"])
     if not invoice_no:
         raise RejectedRow(config.REJECT_EMPTY_INVOICE)
@@ -159,9 +152,7 @@ def clean_row(row, source_name, source_tz):
     }
 
 
-# ---------------------------------------------------------------------------
 # Catálogo de productos
-# ---------------------------------------------------------------------------
 
 def is_product(stock_code):
     if stock_code in config.NON_PRODUCT_CODES:
@@ -206,9 +197,7 @@ def build_products(descriptions_by_code):
     return products
 
 
-# ---------------------------------------------------------------------------
 # Proceso completo
-# ---------------------------------------------------------------------------
 
 def write_csv(path, columns, rows):
     with path.open("w", encoding="utf-8", newline="") as file:

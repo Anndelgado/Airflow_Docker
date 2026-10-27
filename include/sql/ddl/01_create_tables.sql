@@ -1,33 +1,30 @@
--- ============================================================
+
 -- DataMart S.A.S. - Modelo del Data Warehouse (esquema estrella)
--- PostgreSQL ejecuta este archivo automáticamente la PRIMERA vez
--- que se crea el contenedor postgres-warehouse.
--- ============================================================
 
 -- Dimensión: un registro por código de producto.
 CREATE TABLE IF NOT EXISTS dim_product (
-    stock_code            VARCHAR(20)  PRIMARY KEY,   -- normalizado: mayúsculas, sin espacios
-    description           VARCHAR(255),               -- nombre canónico (el más frecuente)
-    category              VARCHAR(50)  NOT NULL,      -- asignada por palabras clave
-    is_product            BOOLEAN      NOT NULL,      -- FALSE = envío, comisión, descuento, ajuste
-    description_variants  INTEGER      NOT NULL       -- cuántas descripciones distintas tuvo
+    stock_code            VARCHAR(20)  PRIMARY KEY,   
+    description           VARCHAR(255),               
+    category              VARCHAR(50)  NOT NULL,      
+    is_product            BOOLEAN      NOT NULL,      
+    description_variants  INTEGER      NOT NULL       
 );
 
 -- Hecho: una fila por línea de factura (ventas Y devoluciones).
 CREATE TABLE IF NOT EXISTS fact_transactions (
-    transaction_key    CHAR(64)       PRIMARY KEY,    -- hash de la clave de negocio
-    source             VARCHAR(20)    NOT NULL,       -- fuente de la que se tomó la fila
-    source_row_number  INTEGER        NOT NULL,       -- fila en el archivo original
+    transaction_key    CHAR(64)       PRIMARY KEY,    
+    source             VARCHAR(20)    NOT NULL,       
+    source_row_number  INTEGER        NOT NULL,      
     invoice_no         VARCHAR(20)    NOT NULL,
     stock_code         VARCHAR(20)    NOT NULL REFERENCES dim_product (stock_code),
-    customer_id        VARCHAR(20),                   -- NULL = transacción sin cliente
+    customer_id        VARCHAR(20),                  
     country            VARCHAR(60),
     invoice_date_utc   TIMESTAMPTZ    NOT NULL,
     quantity           INTEGER        NOT NULL,
     unit_price         NUMERIC(12, 3) NOT NULL,
-    line_amount        NUMERIC(14, 2) NOT NULL,       -- cantidad x precio (negativo si es devolución)
+    line_amount        NUMERIC(14, 2) NOT NULL,       
     transaction_type   VARCHAR(10)    NOT NULL,
-    description_raw    VARCHAR(255),                  -- descripción tal como venía
+    description_raw    VARCHAR(255),                  
     CONSTRAINT chk_unit_price_positive CHECK (unit_price > 0),
     CONSTRAINT chk_transaction_type CHECK (transaction_type IN ('SALE', 'RETURN', 'ADJUSTMENT'))
 );
@@ -40,9 +37,9 @@ CREATE INDEX IF NOT EXISTS idx_fact_country ON fact_transactions (country);
 CREATE TABLE IF NOT EXISTS fact_daily_product_revenue (
     revenue_date     DATE           NOT NULL,
     stock_code       VARCHAR(20)    NOT NULL REFERENCES dim_product (stock_code),
-    gross_revenue    NUMERIC(14, 2) NOT NULL,   -- solo ventas
-    returns_amount   NUMERIC(14, 2) NOT NULL,   -- valor devuelto (positivo)
-    net_revenue      NUMERIC(14, 2) NOT NULL,   -- gross_revenue - returns_amount
+    gross_revenue    NUMERIC(14, 2) NOT NULL,   
+    returns_amount   NUMERIC(14, 2) NOT NULL,   
+    net_revenue      NUMERIC(14, 2) NOT NULL,   
     units_sold       INTEGER        NOT NULL,
     units_returned   INTEGER        NOT NULL,
     sales_lines      INTEGER        NOT NULL,

@@ -1,5 +1,4 @@
 -- Recalcula el revenue bruto, devoluciones y neto por producto y día (UTC).
--- Se borra y se vuelve a calcular completo: correrlo dos veces da lo mismo.
 -- Regla de negocio: neto = bruto - devoluciones del MISMO producto el MISMO día.
 
 TRUNCATE fact_daily_product_revenue;

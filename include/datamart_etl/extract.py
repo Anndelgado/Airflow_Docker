@@ -1,9 +1,6 @@
 """
 EXTRACCIÓN: lee el CSV crudo de una fuente y lo deja en la carpeta work/
 con nombres de columna estándar y codificación UTF-8.
-
-Aquí NO se limpia ningún dato: solo se unifica el formato del archivo para
-que la transformación trate todas las fuentes igual.
 """
 
 import csv

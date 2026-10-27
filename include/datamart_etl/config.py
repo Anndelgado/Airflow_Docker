@@ -1,29 +1,19 @@
 """
 Configuración y decisiones de negocio del pipeline.
-
-Todo lo que es una DECISIÓN (y no lógica) vive en este archivo, para que
-se pueda cambiar sin tocar el resto del código.
 """
 
-# ---------------------------------------------------------------------------
 # 1. Fuentes de datos, en ORDEN DE PRIORIDAD.
-#    Si la misma línea de factura aparece en las dos fuentes, se conserva
-#    la de la fuente que está primero en esta lista.
-# ---------------------------------------------------------------------------
+
 SOURCES = [
     {"name": "sales", "file": "data.csv", "encoding": "cp1252"},
     {"name": "history", "file": "online_retail.csv", "encoding": "utf-8-sig"},
 ]
 
-# Carpeta (dentro de RAW_CSV_PATH) donde las tareas dejan sus archivos
 # intermedios para la siguiente tarea.
 WORK_FOLDER = "work"
 
-# ---------------------------------------------------------------------------
-# 2. Nombres de columna que puede traer cada fuente -> nombre estándar.
-#    Incluye los nombres del dataset online_retail_II (Invoice, Price,
-#    Customer ID) por si se vuelve a usar esa fuente.
-# ---------------------------------------------------------------------------
+
+# 2. Nombres de columna que puede traer cada fuente 
 COLUMN_ALIASES = {
     "InvoiceNo": "invoice_no",
     "Invoice": "invoice_no",
@@ -55,11 +45,7 @@ REQUIRED_COLUMNS = {"invoice_no", "stock_code", "quantity", "invoice_date", "uni
 # Formatos de fecha aceptados (las fechas vienen sin zona horaria).
 DATE_FORMATS = ("%m/%d/%Y %H:%M", "%Y-%m-%d %H:%M:%S")
 
-# ---------------------------------------------------------------------------
-# 3. Códigos que NO son productos (envíos, comisiones, descuentos, ajustes,
-#    bonos de regalo). Se cargan, pero marcados con is_product = FALSE para
-#    excluirlos de los análisis de producto.
-# ---------------------------------------------------------------------------
+
 NON_PRODUCT_CODES = {
     "POST",         # Envío (POSTAGE)
     "DOT",          # Envío tienda online (DOTCOM POSTAGE)
@@ -75,11 +61,9 @@ NON_PRODUCT_CODES = {
 NON_PRODUCT_PREFIXES = ("GIFT_",)  # Bonos de regalo (GIFT_0001_20, ...)
 NON_PRODUCT_CATEGORY = "Cargos y ajustes"
 
-# ---------------------------------------------------------------------------
-# 4. Categoría de producto. No hay API de catálogo, así que se asigna por
-#    palabras clave en la descripción canónica. Se revisan en este orden y
-#    gana la PRIMERA categoría que tenga una palabra en común.
-# ---------------------------------------------------------------------------
+
+# 4. Categoría de producto. No hay API de catálogo, así que se asigna por palabras clave en la descripción canónica. 
+
 CATEGORY_KEYWORDS = [
     ("Electrónica", {
         "LED", "LIGHTS", "LAMP", "TORCH", "RADIO", "CLOCK", "BATTERY",
@@ -118,18 +102,14 @@ CATEGORY_KEYWORDS = [
         "GARDENERS", "DISH", "TRAYS", "CLOTHES", "CERAMIC", "WOODEN",
     }),
 ]
-# Es una heurística: cubre ~91% del revenue; el resto queda en "Otros".
 # Cuando exista la API de catálogo, esta lista se reemplaza por su categoría.
 DEFAULT_CATEGORY = "Otros"
 
-# ---------------------------------------------------------------------------
-# 5. Clientes sin ID: se CONSERVAN con customer_id = NULL (no se descartan
-#    ventas reales). En las consultas se muestran como "Sin cliente".
-# ---------------------------------------------------------------------------
+# 5. Clientes sin ID: se CONSERVAN con customer_id = NULL (no se descartan ventas reales). En las consultas se muestran como "Sin cliente".
 
-# ---------------------------------------------------------------------------
+
 # 6. Motivos de rechazo (quedan en la tabla etl_rejections).
-# ---------------------------------------------------------------------------
+
 REJECT_EMPTY_INVOICE = "Número de factura vacío"
 REJECT_EMPTY_STOCK_CODE = "Código de producto vacío"
 REJECT_INVALID_QUANTITY = "Cantidad no numérica o no entera"

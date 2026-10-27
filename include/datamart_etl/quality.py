@@ -1,6 +1,5 @@
 """
-CALIDAD: compuerta antes de cargar. Si los datos no pasan, el DAG se
-detiene y no se carga nada al Data Warehouse.
+CALIDAD: compuerta antes de cargar. Si los datos no pasan, el DAG se detiene y no se carga nada al Data Warehouse.
 """
 
 import csv

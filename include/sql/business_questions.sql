@@ -1,12 +1,7 @@
--- ============================================================
+
 -- DataMart S.A.S. - Consultas de validación / preguntas de negocio
 -- Ejecutar contra el Data Warehouse después de correr el DAG.
---
--- Convenciones:
---   * "Revenue neto" = ventas - devoluciones (tabla fact_daily_product_revenue).
---   * Los análisis de PRODUCTO excluyen envíos, comisiones y ajustes
---     (dim_product.is_product = FALSE).
--- ============================================================
+
 
 
 -- 0. Validación de la carga: qué aportó cada fuente.
@@ -31,7 +26,6 @@ JOIN dim_product p ON p.stock_code = r.stock_code
 WHERE p.is_product
 GROUP BY 1
 ORDER BY 1;
--- Nota: diciembre 2011 solo tiene datos hasta el día 9.
 
 
 -- 2. Categorías: revenue bruto y proporción de devoluciones.
@@ -64,8 +58,7 @@ LIMIT 10;
 
 
 -- 3B. Top 10 productos por tasa de devolución (en valor).
--- Se exige un mínimo de 1.000 de revenue bruto para no mostrar productos
--- con una sola venta. Una tasa > 100% significa que se devolvió mercancía
+-- Se exige un mínimo de 1.000 de revenue bruto para no mostrar productos con una sola venta. Una tasa > 100% significa que se devolvió mercancía
 -- vendida antes del inicio de los datos.
 SELECT
     p.stock_code,
