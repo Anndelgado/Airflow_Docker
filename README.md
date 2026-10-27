@@ -2,10 +2,9 @@
 
 Pipeline diario que toma las transacciones de ventas de **dos fuentes CSV**, las limpia y aplica las reglas de negocio, separa ventas de devoluciones, registra los rechazos y carga un **Data Warehouse en PostgreSQL**. Todo está orquestado con **Apache Airflow 3.1** dentro de Docker.
 
-- 🎥 **Video demo:** _<pegar aquí el enlace al video>_
-- 📐 **Modelo de datos:** [docs/diagrama_er.md](docs/diagrama_er.md)
-- 🧠 **Decisiones técnicas:** [docs/decisiones_tecnicas.md](docs/decisiones_tecnicas.md)
-- 🔎 **Consultas de negocio:** [include/sql/business_questions.sql](include/sql/business_questions.sql)
+-  **Modelo de datos:** [docs/diagrama_er.md](docs/diagrama_er.md)
+-  **Decisiones técnicas:** [docs/decisiones_tecnicas.md](docs/decisiones_tecnicas.md)
+-  **Consultas de negocio:** [include/sql/business_questions.sql](include/sql/business_questions.sql)
 
 ---
 
