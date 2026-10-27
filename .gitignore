@@ -1,0 +1,16 @@
+# Secretos locales
+.env
+.env.*
+!.env.example
+
+# Generados al correr
+logs/
+include/data/work/
+__pycache__/
+*.py[cod]
+
+# Entorno local
+.venv/
+.vscode/
+.idea/
+.DS_Store

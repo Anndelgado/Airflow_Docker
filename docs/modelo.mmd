@@ -1,0 +1,55 @@
+erDiagram
+    DIM_PRODUCT ||--o{ FACT_TRANSACTIONS : "stock_code"
+    DIM_PRODUCT ||--o{ FACT_DAILY_PRODUCT_REVENUE : "stock_code"
+
+    DIM_PRODUCT {
+        varchar stock_code PK "mayusculas, sin espacios"
+        varchar description "nombre canonico"
+        varchar category "por palabras clave"
+        boolean is_product "FALSE = cargos y ajustes"
+        int description_variants
+    }
+    FACT_TRANSACTIONS {
+        char transaction_key PK "hash clave de negocio"
+        varchar source
+        int source_row_number
+        varchar invoice_no
+        varchar stock_code FK
+        varchar customer_id "NULL = sin cliente"
+        varchar country
+        timestamptz invoice_date_utc
+        int quantity
+        numeric unit_price "mayor a 0"
+        numeric line_amount "negativo si devolucion"
+        varchar transaction_type "SALE RETURN ADJUSTMENT"
+        varchar description_raw
+    }
+    FACT_DAILY_PRODUCT_REVENUE {
+        date revenue_date PK
+        varchar stock_code PK,FK
+        numeric gross_revenue
+        numeric returns_amount
+        numeric net_revenue
+        int units_sold
+        int units_returned
+        int sales_lines
+        int return_lines
+    }
+    ETL_REJECTIONS {
+        varchar source PK
+        int source_row_number PK
+        varchar invoice_no
+        varchar stock_code
+        varchar rejection_reason
+        varchar rejected_value
+        timestamptz rejected_at
+    }
+    ETL_SOURCE_SUMMARY {
+        varchar source PK
+        int priority
+        int rows_read
+        int rows_loaded
+        int rows_rejected
+        int rows_duplicated
+        timestamptz loaded_at
+    }

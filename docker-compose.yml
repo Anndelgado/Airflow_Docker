@@ -1,0 +1,123 @@
+# DataMart S.A.S. - Airflow 3 + dos PostgreSQL (metadatos y Data Warehouse)
+# Uso: docker compose up -d
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:3.1.5      # ya incluye los providers de Postgres y SQL
+  env_file:
+    - .env
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_AIRFLOW_USER}:${POSTGRES_AIRFLOW_PASSWORD}@postgres-airflow:5432/${POSTGRES_AIRFLOW_DB}
+
+    # Claves compartidas por todos los servicios de Airflow
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET}
+    AIRFLOW__API__SECRET_KEY: ${AIRFLOW_API_SECRET_KEY}
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+
+    # Para que el DAG pueda hacer "from datamart_etl import ..."
+    PYTHONPATH: /opt/airflow/include
+
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./include:/opt/airflow/include
+    - ./include/data:/opt/airflow/data      # CSV de entrada + carpeta work/
+
+  user: "${AIRFLOW_UID:-50000}:0"
+
+  depends_on: &airflow-common-depends-on
+    postgres-airflow:
+      condition: service_healthy
+    postgres-warehouse:
+      condition: service_healthy
+
+services:
+  # Base de metadatos de Airflow (NO es el Data Warehouse)
+  postgres-airflow:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_AIRFLOW_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_AIRFLOW_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_AIRFLOW_DB}
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AIRFLOW_USER} -d ${POSTGRES_AIRFLOW_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Data Warehouse: las tablas se crean solas al iniciar por primera vez
+  postgres-warehouse:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_WAREHOUSE_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_WAREHOUSE_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_WAREHOUSE_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - warehouse-db-data:/var/lib/postgresql/data
+      # Solo la carpeta ddl/: Postgres ejecuta TODOS los .sql que encuentre aquí
+      - ./include/sql/ddl:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_WAREHOUSE_USER} -d ${POSTGRES_WAREHOUSE_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Se ejecuta una vez: migra la base, crea el admin, la Connection y las Variables
+  airflow-init:
+    <<: *airflow-common
+    command: bash /opt/airflow/include/scripts/init_airflow.sh
+    restart: "no"
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  airflow-db-data:
+  warehouse-db-data:
